@@ -37,11 +37,11 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     public Result getShopTypeList() {
         String key= RedisConstants.SHOP_TYPE_KEY;
         //1.从缓存中查询
-        String typeList = redisTemplate.opsForValue().get(key).toString();
+        Object typeList = redisTemplate.opsForValue().get(key);
         //2.若缓存存在，直接返回
-        if(StrUtil.isNotEmpty(typeList)){
+        if(typeList != null){
             //将字符串转换为对象
-            List<ShopType> shopTypes = JSONUtil.toList(typeList, ShopType.class);
+            List<ShopType> shopTypes = JSONUtil.toList((String) typeList, ShopType.class);
             return Result.ok(shopTypes);
         }
         //3.若缓存不存在，查询数据库

@@ -11,8 +11,10 @@ import com.hmdp.utils.RedisConstants;
 import lombok.val;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -36,10 +38,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     public Result getShopById(Long id) {
         String key = RedisConstants.CACHE_SHOP_KEY+id;
         //1.从redis查询商铺缓存
-        String shopJson = redisTemplate.opsForValue().get(key).toString();
+        Object shopJson = redisTemplate.opsForValue().get(key);
         //2.如果存在，直接返回
-        if(StrUtil.isNotBlank(shopJson)){
-            return Result.ok(JSONUtil.toBean(shopJson,Shop.class));
+        if(shopJson != null){
+            return Result.ok(JSONUtil.toBean((String) shopJson,Shop.class));
         }
         //  3.如果不存在，查询数据库
         Shop shop = getById(id); //mybatis-plus查询数据库
@@ -48,8 +50,24 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             return Result.fail("商铺不存在");
         }
         //  6.存在，写入redis
-        redisTemplate.opsForValue().set(key,JSONUtil.toJsonStr(shop));
+        redisTemplate.opsForValue().set(key,JSONUtil.toJsonStr(shop),RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
         // 7.返回
         return Result.ok(shop);
     }
+
+    @Override
+    @Transactional
+    public Result update(Shop shop) {
+        Long id = shop.getId();
+        if(id == null){
+            return Result.fail("商铺id不能为空");
+        }
+        //更新数据库
+        updateById(shop);
+        //删除缓存
+        redisTemplate.delete(RedisConstants.CACHE_SHOP_KEY+id);
+        return Result.ok();
+    }
+
+
 }
