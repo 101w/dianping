@@ -33,7 +33,10 @@ public class ShopController {
      */
     @GetMapping("/{id}")
     public Result queryShopById(@PathVariable("id") Long id) {
-        return Result.ok(shopService.getById(id));
+
+       // return Result.ok(shopService.getById(id));  ---原本：由mybatis直接查询mtsql数据库
+        // 添加缓存
+      return shopService.getShopById(id);
     }
 
     /**
