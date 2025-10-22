@@ -39,4 +39,14 @@ public class FollowController {
         Boolean isFollow = followService.isFollow(followUserId);
         return Result.ok(isFollow);
     }
-  }
+
+    /**
+     * 共同关注
+     */
+     @GetMapping("/common/{id}")
+    public Result commonFollow (@PathVariable("id") Long followUserId) {
+        log.info("查询共同关注，id：{}", followUserId);
+        Result result = followService.commonFollow(followUserId);
+        return Result.ok(result);
+    }
+}
