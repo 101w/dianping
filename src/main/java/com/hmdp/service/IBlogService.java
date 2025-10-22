@@ -28,4 +28,6 @@ public interface IBlogService extends IService<Blog> {
      * @return
      */
     Long saveBlog(Blog blog);
+
+    Result queryBlogOfFollow(Long max, Integer offset);
 }
