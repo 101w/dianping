@@ -13,4 +13,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IFollowService extends IService<Follow> {
 
+    /**
+     * 关注或取关用户
+     */
+    void follow(Long id, Boolean isFollow);
+
+    /**
+     * 查询关注状态
+     */
+    Boolean isFollow(Long followUserId);
 }
