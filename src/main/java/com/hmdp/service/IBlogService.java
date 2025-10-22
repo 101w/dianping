@@ -21,4 +21,11 @@ public interface IBlogService extends IService<Blog> {
     Result likeBlog(Long id);
 
     Result queryBlogLikes(Long id);
+
+    /**
+     * 保存探店博文
+     * @param blog
+     * @return
+     */
+    Long saveBlog(Blog blog);
 }

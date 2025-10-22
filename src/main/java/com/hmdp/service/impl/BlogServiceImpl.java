@@ -6,14 +6,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
+import com.hmdp.entity.Follow;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.BlogMapper;
 import com.hmdp.service.IBlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.service.IFollowService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.SystemConstants;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.hmdp.utils.RedisConstants.BLOG_LIKED_KEY;
+import static com.hmdp.utils.RedisConstants.FEED_KEY;
 
 /**
  * <p>
@@ -73,6 +77,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         return result;
     }
+    @Autowired
+    private IFollowService followService;
 
     private void isBlogLiked(Blog blog) {
         // 获取当前登录用户
@@ -150,6 +156,35 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 .collect(Collectors.toList());
         // 4.返回
         return Result.ok(userDTOS);
+    }
+
+    /**
+     * 保存探店博文
+     * @param blog
+     * @return
+     */
+    @Override
+    public Long saveBlog(Blog blog) {
+        // 获取登录用户
+        UserDTO user = UserHolder.getUser();
+        blog.setUserId(user.getId());
+        // 保存探店博文
+        boolean save = save(blog);
+        if(!save){
+            throw new RuntimeException("保存探店博文失败");
+        }
+        //实现发送收件箱功能
+        //查询所有粉丝列表
+        List<Follow> follows = followService.query().eq("follow_user_id", user.getId()).list();
+        //向粉丝发送收件箱消息
+        for (Follow follow : follows) {
+            //1.获取粉丝id
+            Long followUserId = follow.getUserId();
+            //推送
+            String key =FEED_KEY +user.getId();
+            stringRedisTemplate.opsForZSet().add(key,followUserId.toString(),System.currentTimeMillis());
+        }
+        return blog.getId();
     }
 
     private void queryBlogUser(Blog blog) {
