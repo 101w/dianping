@@ -127,4 +127,22 @@ public class UserController {
         List<Blog> records = page.getRecords();
         return Result.ok(records);
     }
+
+    /**
+     * 签到功能
+     */
+    @PostMapping("/sign")
+    public Result sign(){
+        userService.sign();
+        return Result.ok();
+    }
+
+    /**
+     * 签到统计
+     */
+    @GetMapping("/sign/count")
+    public Result signCount(){
+        int count = userService.signCount();
+        return Result.ok(count);
+    }
 }

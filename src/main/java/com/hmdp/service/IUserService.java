@@ -31,4 +31,15 @@ public interface IUserService extends IService<User> {
      * @param session HttpSession
      */
     Result login(LoginFormDTO loginForm, HttpSession session) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException;
+
+    /**
+     * 签到功能
+     */
+    void sign();
+
+    /**
+     * 签到统计
+     * @return 签到次数
+     */
+    int signCount();
 }
